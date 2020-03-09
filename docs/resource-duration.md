@@ -52,6 +52,14 @@ Memory: 3min * 100Mi / 1Gi   = 18sec * (1Gi memory)
 GPU:    3min * 1     / 1     = 2min * (1 nvidia.com/gpu)
 ```
 
+### Web/CLI reporting
+
+Both the web and CLI give abbreviated usage, like `9m10s*cpu,6s*memory,2m31s*nvidia.com/gpu`. In
+this context, resources like `memory` refer to the "base amounts".
+
+For example, `memory` means "amount of time a resource requested 1Gi of memory." If a container only 
+uses 100Mi, each second it runs will only count as a tenth-second of `memory`.
+
 ## Rounding Down
 
 For short running pods (<10s), the memory value may be 0s. This is because the default is `100Mi`, 
