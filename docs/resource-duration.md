@@ -27,7 +27,7 @@ Each resource type has a "base amount" used to normalize usage across containers
  * Ephemeral Storage: `10Gi`
  * All others: `1` 
 
-The requested fraction of the base amount will be multiplied by the resource's "base amount" to get 
+The requested fraction of the base amount will be multiplied by the container's run time to get 
 the container's Resource Duration. For example, if you've requested `100Mi` of memory, and the 
 container runs 2min, then the reported Resource Duration will be `12sec * (1Gi memory)`. 
 
