@@ -41,11 +41,11 @@ export class WorkflowDag extends React.Component<WorkflowDagProps> {
     }
 
     private get nodeWidth() {
-        return 140 / this.zoom;
+        return 32 / this.zoom;
     }
 
     private get nodeHeight() {
-        return 52 / this.zoom;
+        return 32 / this.zoom;
     }
 
     public render() {
@@ -105,32 +105,50 @@ export class WorkflowDag extends React.Component<WorkflowDagProps> {
             <div className='workflow-dag' style={{width: size.width, height: size.height}}>
                 {graph.nodes().map(id => {
                     const node = graph.node(id) as models.NodeStatus & dagre.Node;
-                    const statusWidth = 3 / this.zoom;
+                    const small = this.isSmall(node);
                     return (
-                        <div
-                            key={id}
-                            title={node.label}
-                            className={classNames('workflow-dag__node', {
-                                active: node.id === this.props.selectedNodeId,
-                                virtual: this.isVirtual(node),
-                                small: this.isSmall(node)
-                            })}
-                            style={{
-                                left: node.x - node.width / 2,
-                                top: node.y - node.height / 2,
-                                width: node.width,
-                                height: node.height,
-                                paddingLeft: 0.5 + statusWidth + 'em'
-                            }}
-                            onClick={() => this.props.nodeClicked && this.props.nodeClicked(node)}>
+                        <>
                             <div
-                                className={`fas workflow-dag__node-status workflow-dag__node-status--${Utils.isNodeSuspended(node) ? 'suspended' : node.phase.toLocaleLowerCase()}`}
-                                style={{width: statusWidth + 'em', lineHeight: this.nodeHeight + 'px'}}
+                                key={id}
+                                title={node.label}
+                                className={classNames(
+                                    'workflow-dag__node',
+                                    `fas`,
+                                    'workflow-dag__node-status',
+                                    'workflow-dag__node-status--' + (Utils.isNodeSuspended(node) ? 'suspended' : node.phase.toLocaleLowerCase()),
+                                    {
+                                        active: node.id === this.props.selectedNodeId,
+                                        virtual: this.filterNode(node),
+                                        small
+                                    }
+                                )}
+                                style={{
+                                    left: node.x - node.width / 2,
+                                    top: node.y - node.height / 2,
+                                    width: node.width,
+                                    height: node.height,
+                                    lineHeight: this.nodeHeight + 'px',
+                                    fontSize: 1 / this.zoom + 'em',
+                                    borderRadius: this.nodeWidth / 2 + 'px'
+                                }}
+                                onClick={() => this.props.nodeClicked && this.props.nodeClicked(node)}
                             />
-                            <div className='workflow-dag__node-title' style={{lineHeight: this.nodeHeight + 'px', fontSize: 1 / this.zoom + 'em'}}>
-                                {node.label}
-                            </div>
-                        </div>
+                            {!small && (
+                                <div
+                                    className='workflow-dag__node-title'
+                                    style={{
+                                        position: 'absolute',
+                                        left: node.x - node.width,
+                                        top: node.y + node.height / 2,
+                                        width: node.width * 2,
+                                        lineHeight: this.nodeHeight + 'px',
+                                        textAlign: 'center',
+                                        fontSize: 0.75 / this.zoom + 'em'
+                                    }}>
+                                    {node.label}
+                                </div>
+                            )}
+                        </>
                     );
                 })}
                 {edges.map(edge => (
@@ -160,7 +178,7 @@ export class WorkflowDag extends React.Component<WorkflowDagProps> {
     }
 
     private isSmall(node: models.NodeStatus) {
-        return this.isVirtual(node) || (this.props.renderOptions.hideSucceeded && node.phase === NODE_PHASE.SUCCEEDED);
+        return this.filterNode(node) || (this.props.renderOptions.hideSucceeded && node.phase === NODE_PHASE.SUCCEEDED);
     }
 
     private getOutboundNodes(nodeID: string): string[] {
@@ -182,6 +200,11 @@ export class WorkflowDag extends React.Component<WorkflowDagProps> {
 
     private isVirtual(node: models.NodeStatus) {
         return (node.type === 'StepGroup' || node.type === 'DAG' || node.type === 'TaskGroup') && !!node.boundaryID;
+    }
+
+    private filterNode(node: models.NodeStatus) {
+        // Filter the node if it is a virtual node or a Retry node with one child
+        return this.isVirtual(node) || (node.type === 'Retry' && node.children.length === 1);
     }
 
     private getGraphSize(nodes: dagre.Node[]): {width: number; height: number} {
