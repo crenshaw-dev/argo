@@ -37,6 +37,35 @@
       "items": {
         "$ref": "#/definitions/github.com.argoproj.argo.pkg.apis.workflow.v1alpha1.WorkflowStep"
       }
+    },
+    "github.com.argoproj.argo.pkg.apis.workflow.v1alpha1.Item": {
+      "oneOf": [
+        {
+          "items": {
+            "type": "string"
+          }
+        },
+        {
+          "items": {
+            "type": "boolean"
+          }
+        },
+        {
+          "items": {
+            "type": "number"
+          }
+        },
+        {
+          "items": {
+            "type": "array"
+          }
+        },
+        {
+          "items": {
+            "type": "object"
+          }
+        }
+      ]
     }
   }
 }
