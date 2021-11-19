@@ -34,10 +34,24 @@ spec:
 
 ### Security
 
-No security context is enforced, but is strong encouraged you configure your container not to run as root.
+Plugins are a powerful way to augment Argo Workflows' capabilities. Plugins also introduce code which may contain 
+vulnerabilities.
 
-Plugins can run at an non-localhost address, but this is very strongly discouraged. Within a pod, network traffic cannot
-be observed.
+Before enabling plugins, consider:
+* Who should be able to install plugins? How will this be enforced (e.g. RBAC rules for creating/modifying ConfigMaps)?
+* What should be the plugins' configured security context? Using non-root is strongly encouraged.
+* Will any plugins run at a non-localhost address? If so, how will network traffic be secured? Running only on localhost
+  strongly encouraged, because traffic within the pod cannot be observed.
+
+When developing plugins, consider:
+* Is the plugin code itself written securely? The plugin should guard against all the usual relevant vulnerabilities
+  (SQL/OS code injection, hard-coded credentials, logging secrets, etc.). The 
+  [Common Weakness Enumeration Top 25](https://cwe.mitre.org/data/definitions/1337.html) is a good starting point when
+  considering possible weaknesses.
+* What new execution paths does the plugin enable? Plugins can mutate a workflow's structure. Consider how your plugin's
+  mutations might break safeguards built into your existing workflows.
+* Have the particular security considerations of [controller](controller_plugins.md#security) or
+  [executor](executor_plugins.md#security) plugins been addressed?
 
 ### Resources
 
